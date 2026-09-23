@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Hasil training YOLO
+runs/
+
+# Model custom (biasanya besar; upload manual atau lewat Git LFS jika perlu)
+models/best.pt
+
+# Streamlit
+.streamlit/secrets.toml

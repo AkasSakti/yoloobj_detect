@@ -1,0 +1,8 @@
+# Konfigurasi dataset YOLO untuk deteksi ayam.
+# Path bersifat relatif terhadap file ini (ultralytics me-resolve otomatis).
+path: .
+train: images/train
+val: images/val
+
+names:
+  0: ayam
