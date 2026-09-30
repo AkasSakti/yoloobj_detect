@@ -1,8 +1,9 @@
-# Konfigurasi dataset YOLO untuk deteksi ayam.
-# Path bersifat relatif terhadap file ini (ultralytics me-resolve otomatis).
-path: .
+# Konfigurasi dataset YOLO untuk deteksi burung (termasuk ayam).
+# Tanpa key "path", ultralytics me-resolve train/val relatif terhadap folder file ini.
+# Isi images/ & labels/ dibuat oleh prepare_birds_dataset.py (dataset Kaggle
+# "Birds Images Dataset") dan boleh ditambah gambar ayam berlabel sendiri.
 train: images/train
 val: images/val
 
 names:
-  0: ayam
+  0: burung

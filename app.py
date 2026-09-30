@@ -1,4 +1,4 @@
-"""Aplikasi Streamlit: deteksi & hitung jumlah ayam pada gambar dengan YOLO."""
+"""Aplikasi Streamlit: deteksi & hitung jumlah burung (termasuk ayam) pada gambar dengan YOLO."""
 from __future__ import annotations
 
 from io import BytesIO
@@ -8,15 +8,15 @@ import numpy as np
 import streamlit as st
 from PIL import Image
 
-from detector import ChickenDetector
+from detector import BirdDetector
 
 BASE_DIR = Path(__file__).resolve().parent
 SAMPLES_DIR = BASE_DIR / "data" / "samples"
 
 
 @st.cache_resource(show_spinner="Memuat model YOLO...")
-def load_detector() -> ChickenDetector:
-    return ChickenDetector()
+def load_detector() -> BirdDetector:
+    return BirdDetector()
 
 
 def pil_to_bgr(image: Image.Image) -> np.ndarray:
@@ -32,9 +32,9 @@ def rgb_array_to_png_bytes(rgb_array: np.ndarray) -> bytes:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Deteksi & Hitung Ayam", page_icon="🐔", layout="wide")
-    st.title("🐔 Deteksi & Hitung Jumlah Ayam (YOLO)")
-    st.caption("Unggah gambar berisi ayam, model akan menandai tiap ayam yang terdeteksi dan menghitung jumlahnya.")
+    st.set_page_config(page_title="Deteksi & Hitung Burung", page_icon="🐦", layout="wide")
+    st.title("🐦 Deteksi & Hitung Jumlah Burung (YOLO)")
+    st.caption("Unggah gambar berisi burung (termasuk ayam), model akan menandai tiap burung yang terdeteksi dan menghitung jumlahnya.")
 
     detector = load_detector()
 
@@ -48,28 +48,37 @@ def main() -> None:
         if not detector.using_custom_model:
             st.warning(
                 "Belum ada model custom di `models/best.pt`. Aplikasi memakai model "
-                "pretrained COCO dan mendeteksi kelas *bird* sebagai pendekatan untuk ayam, "
-                "sehingga akurasinya terbatas. Latih model sendiri dengan `train.py` pada "
-                "dataset ayam untuk hasil yang lebih akurat (lihat README)."
+                "pretrained COCO (kelas *bird*), sehingga akurasinya terbatas. Jalankan "
+                "`prepare_birds_dataset.py` lalu `train.py` untuk melatih model dengan "
+                "dataset Kaggle Birds Images (lihat README)."
+            )
+        else:
+            st.caption(
+                "Model di-fine-tune dengan dataset Kaggle "
+                "[Birds Images Dataset](https://www.kaggle.com/datasets/stealthtechnologies/birds-images-dataset)."
             )
 
     sample_files = sorted(SAMPLES_DIR.glob("*.jpg")) + sorted(SAMPLES_DIR.glob("*.png"))
-    use_sample = False
+    sample_choice = None
     uploaded_file = st.file_uploader("Unggah gambar (JPG/PNG)", type=["jpg", "jpeg", "png"])
     if uploaded_file is None and sample_files:
-        use_sample = st.checkbox(f"Pakai gambar contoh dari data/samples ({sample_files[0].name})")
+        sample_choice = st.selectbox(
+            "...atau pilih gambar contoh dari data/samples",
+            options=[None, *sample_files],
+            format_func=lambda p: "(tidak ada)" if p is None else p.name,
+        )
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-    elif use_sample:
-        image = Image.open(sample_files[0])
+    elif sample_choice is not None:
+        image = Image.open(sample_choice)
     else:
-        st.info("Unggah gambar atau centang opsi gambar contoh di atas untuk mulai mendeteksi.")
+        st.info("Unggah gambar atau pilih gambar contoh di atas untuk mulai mendeteksi.")
         return
 
     image_bgr = pil_to_bgr(image)
 
-    with st.spinner("Mendeteksi ayam..."):
+    with st.spinner("Mendeteksi burung..."):
         annotated_rgb, count, confidences = detector.detect(image_bgr, conf=conf_threshold)
 
     col1, col2 = st.columns(2)
@@ -80,17 +89,17 @@ def main() -> None:
         st.subheader("Hasil deteksi")
         st.image(annotated_rgb, use_container_width=True)
 
-    st.metric("Jumlah ayam terdeteksi", count)
+    st.metric("Jumlah burung terdeteksi", count)
 
     if confidences:
         with st.expander("Detail confidence tiap deteksi"):
             for i, score in enumerate(confidences, start=1):
-                st.write(f"Ayam #{i}: {score:.2%}")
+                st.write(f"Burung #{i}: {score:.2%}")
 
     st.download_button(
         "Unduh gambar hasil deteksi",
         data=rgb_array_to_png_bytes(annotated_rgb),
-        file_name="hasil_deteksi_ayam.png",
+        file_name="hasil_deteksi_burung.png",
         mime="image/png",
     )
 

@@ -7,8 +7,15 @@ venv/
 # Hasil training YOLO
 runs/
 
-# Model custom (biasanya besar; upload manual atau lewat Git LFS jika perlu)
-models/best.pt
+# models/best.pt (YOLOv8n, ~6 MB) sengaja di-commit supaya Streamlit Cloud langsung memakainya.
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Dataset hasil prepare_birds_dataset.py (bisa dibuat ulang kapan saja)
+data/images/**/kaggle_*
+data/labels/**/kaggle_*
+data/labels/*.cache
+
+# Model YOLO-World untuk auto-label (auto-download oleh ultralytics)
+yolov8s-world.pt

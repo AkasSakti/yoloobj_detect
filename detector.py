@@ -1,13 +1,12 @@
-"""Wrapper deteksi ayam berbasis Ultralytics YOLO.
+"""Wrapper deteksi burung (termasuk ayam) berbasis Ultralytics YOLO.
 
 Model yang dipakai dipilih otomatis:
-- Jika models/best.pt ada (hasil training custom lewat train.py pada dataset
-  ayam di data/), model itu yang dipakai dan semua deteksinya dihitung
-  sebagai ayam.
+- Jika models/best.pt ada (hasil training custom lewat train.py, mis. pada
+  dataset Kaggle "Birds Images Dataset" yang disiapkan prepare_birds_dataset.py),
+  model itu yang dipakai dan semua deteksinya dihitung sebagai burung.
 - Jika belum ada, fallback ke model pretrained YOLOv8 (COCO) dan hanya
-  mengambil deteksi kelas "bird" sebagai pendekatan sementara untuk ayam,
-  karena COCO tidak punya kelas "chicken" khusus. Akurasinya terbatas -
-  lihat README untuk cara melatih model custom yang lebih akurat.
+  mengambil deteksi kelas "bird". Akurasinya lebih terbatas - lihat README
+  untuk cara melatih model custom.
 """
 from __future__ import annotations
 
@@ -23,14 +22,14 @@ PRETRAINED_MODEL_PATH = MODELS_DIR / "yolov8n.pt"
 PROXY_CLASS_NAME = "bird"
 
 
-class ChickenDetector:
-    """Bungkus model YOLO dan menghitung jumlah ayam pada sebuah gambar."""
+class BirdDetector:
+    """Bungkus model YOLO dan menghitung jumlah burung pada sebuah gambar."""
 
     def __init__(self) -> None:
         if CUSTOM_MODEL_PATH.exists():
             self.model = YOLO(str(CUSTOM_MODEL_PATH))
             self.using_custom_model = True
-            # Model custom diasumsikan hanya punya kelas "ayam" (lihat data/data.yaml),
+            # Model custom hanya punya kelas "burung" (lihat data/data.yaml),
             # jadi semua deteksi yang lolos confidence threshold dihitung.
             self.target_class_ids: set[int] | None = None
         else:
@@ -42,12 +41,12 @@ class ChickenDetector:
 
     @property
     def label(self) -> str:
-        return "Model custom (models/best.pt)" if self.using_custom_model else "Model pretrained COCO (proxy kelas 'bird')"
+        return "Model custom burung (models/best.pt)" if self.using_custom_model else "Model pretrained COCO (kelas 'bird')"
 
     def detect(self, image_bgr: np.ndarray, conf: float = 0.25):
         """Jalankan deteksi pada satu gambar (numpy array, urutan channel BGR).
 
-        Mengembalikan tuple (annotated_image_rgb, jumlah_ayam, list_confidence).
+        Mengembalikan tuple (annotated_image_rgb, jumlah_burung, list_confidence).
         """
         result = self.model.predict(image_bgr, conf=conf, verbose=False)[0]
 

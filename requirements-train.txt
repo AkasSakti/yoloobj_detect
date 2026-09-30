@@ -1,0 +1,3 @@
+# Dependency tambahan untuk menyiapkan dataset & training (tidak dibutuhkan app.py)
+-r requirements.txt
+kagglehub>=0.3
